@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
+<!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
+<!--[if IE 8]>         <html class="no-js lt-ie9"> <![endif]-->
+<!--[if gt IE 8]>      <html class="no-js"> <!--<![endif]-->
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <title>Artist Guesser</title>
+        <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" href="style.css">
+    </head>
+    <body class="page-container">
+        <div class="header-body">
+            <!-- Header -->
+            <header style="text-align: center;">
+                <h1 style="color: #FDB773; font-weight: bold;">Artist Guesser</h1>
+                <p style="font-size: 14px; line-height: 20px; margin-top: 4px; margin-bottom: 32px; color: #FFEDD5;">Submit your favorite artist or guess everyone else's.</p>
+            </header>
+            <!-- Tabs -->
+            <div class="nav-tabs">
+                <button id="submit-tab-button" onclick="switchTab('submit')" class="tab-button selected-tab-button">Submit Artist</button>
+                <button id="game-tab-button" onclick="switchTab('game')" class="tab-button">Match & Guess</button>
+                <button id="results-tab-button" onclick="switchTab('results')" class="tab-button">Results</button>
+            </div>
+            <!-- Submit -->
+            <div id="submit-card" class="tab-card">
+                <h2 style="color: white">Add Your Favorite Artist</h2>
+                <div>
+                    <label class="input-label">Your Name</label>
+                    <input id="entry-name" class="input-textfield">
+                </div>
+                <div>
+                    <label class="input-label">Favorite artist</label>
+                    <input id="artist-name" class="input-textfield">
+                </div>
+                <div>
+                    <label class="input-label">Their best song (Optional)</label>
+                    <input id="favorite-song" class="input-textfield">
+                </div>
+                
+                <button id="entry-submit-button" onclick="submitEntry()" class="submit-button">Submit Entry</button>
+                <p id="entry-submit-message" class="submit-msg hidden"></p>
+            </div>
+            <!-- Game -->
+            <div id="game-card" class="tab-card hidden">
+                <div class="game-header">
+                    <h2 style="color: white">Match the Artists to the Associates</h2>
+                </div>
+                <div id="entries-grid" class="entries-container">
+
+                </div>
+                <div class="submit-guess-card">
+                    <label class="input-label">Your Name</label>
+                    <input id="game-name" class="input-textfield" type="text" placeholder="Enter your name...">
+                    <button id="game-submit-button" onclick="submitGuesses()" class="submit-button">Submit Guesses</button>
+                    <p id="game-submit-message" class="submit-msg hidden"></p>
+                </div>
+            </div>
+            <!-- Results -->
+            <div id="results-card" class="tab-card hidden">
+                <div class="game-header">
+                    <h2 style="color: white">Results</h2>
+                </div>
+                <div id="results-container" style="margin-top: 24;">
+
+                </div>
+            </div>
+        </div>
+        <script>
+            const SUPABASE_URL = 'https://zzzqwzntmvzevwtdfezm.supabase.co/';
+            const SUPABASE_KEY = 'sb_publishable_5A988ynKB1dg2kTlSs4XjQ_v84ODqbl';
+            const supabaseDB = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+            var numEntries = 0;
+            let allEntries = [];
+
+            function switchTab(tab){
+                const isSubmit = (tab === "submit");
+                const isGame = (tab === "game");
+                const isResults = (tab === "results");
+    
+                document.getElementById('submit-card').classList.toggle('hidden', !isSubmit);
+                document.getElementById('game-card').classList.toggle('hidden', !isGame);
+                document.getElementById('results-card').classList.toggle('hidden', !isResults);
+
+                document.getElementById('submit-tab-button').classList.toggle('selected-tab-button', isSubmit);
+                document.getElementById('game-tab-button').classList.toggle('selected-tab-button', isGame);
+                document.getElementById('results-tab-button').classList.toggle('selected-tab-button', isResults);
+
+                if(isGame){
+                    loadGameData();
+                } else if(isResults){
+                    loadResultsData();
+                }
+            }
+
+            async function loadGameData(){
+                const { data, error } = await supabaseDB
+                    .from('submissions')
+                    .select('*');
+                
+                if(error || !data || data.length == 0){
+                    document.getElementById('entries-grid').innerHTML = '';
+                    return;
+                }
+
+                allEntries = data;
+                numEntries = allEntries.length;
+
+                /* add unique names to array and sort.*/
+                /*TODO: CHANGE UNIQUE NAMES PART*/
+                const associateNames = [...new Set(data.map(item => item.associate_name))].sort();
+                const shuffledNames = [...associateNames].sort(() => Math.random() - 0.5);
+                entriesGrid = document.getElementById("entries-grid");
+                entriesGrid.innerHTML = "";
+
+                allEntries.forEach((entry, index) => {
+                    let optionsHTML = '<option value="" selected>-- Choose Associate --</option>';
+                    /* build option card*/
+                    shuffledNames.forEach(name => {
+                        optionsHTML += `<option value="${name}">${name}</option>`
+                    });
+                    const card = document.createElement('div');
+                    card.className = "option-card";
+                    card.innerHTML= `
+                        <div>
+                            <span class="artist-span">Artist #${index + 1}</span>
+                            <p class="artist-name">${entry.artist_name}</p>
+                            <p class="favorite-song"> ${entry.favorite_song ? `"${entry.favorite_song}"` : 'No favorite provided.'}
+                        </div>
+                        <div>
+                            <label class="guess-label">Your Guess:</label>
+                            <select id="guess-${entry.id}" class="guess-select">
+                                ${optionsHTML}
+                            </select>
+                        </div>
+                    `;
+                    entriesGrid.appendChild(card);
+                });
+            }
+
+            async function submitGuesses(){
+                const name = document.getElementById('game-name').value.trim();
+                const submitMessage = document.getElementById('game-submit-message');
+                if(!name){
+                    return displayMessage(submitMessage, "Please enter your name before submitting!", false);
+                }
+                let missingGuesses = [];
+                const userGuesses = [];
+                allEntries.forEach((entry, index) => {
+                    const selectElement = document.getElementById(`guess-${entry.id}`);
+                    const selectedValue = selectElement.value;
+                    if(!selectedValue){
+                        missingGuesses.push(index + 1);
+                    }
+                    else{
+                        userGuesses.push({
+                            guesser_name: name,
+                            submission_id: entry.id,
+                            guessed_associate: selectedValue
+                        });
+                    }
+                });
+
+                if(missingGuesses.length > 0){
+                    return displayMessage(submitMessage, `Please select an answer for artist(s) #${missingGuesses.join(', #')}`, false)
+                }
+                const { data, error } = await supabaseDB
+                    .from('user_guesses')
+                    .insert(userGuesses);
+
+                if(error){
+                    console.error("Supabase insert error: ", error);
+                    displayMessage(entrySubmitMsg, "Error saving submission: " + error.message, false);
+                }
+                else{
+                    disableSubmitButton('game-submit-button', 'Guesses Submitted!');
+                    displayMessage(submitMessage, "Your guesses have been submitted successfully!", true);
+                }
+            }
+
+            function disableSubmitButton(buttonId, buttonText){
+                const submitButton = document.getElementById(buttonId);
+                submitButton.disabled = true;
+                submitButton.textContent = buttonText;
+            }
+
+            function displayMessage(msgElement, text, isSuccess){
+                msgElement.textContent = text;
+                msgElement.classList.toggle('submit-success', isSuccess);
+                msgElement.classList.toggle('submit-error', !isSuccess);
+                msgElement.classList.remove('hidden');
+            }
+
+            async function submitEntry(){
+                const associateName = document.getElementById('entry-name').value.trim();
+                const artistName = document.getElementById('artist-name').value.trim();
+                const favoriteSong = document.getElementById('favorite-song').value.trim();
+                const entrySubmitMsg = document.getElementById('entry-submit-message');
+
+                if(!associateName || !artistName){
+                    return displayMessage(entrySubmitMsg, "Please fill in both your name and artist!", false);
+                }
+
+                const { error } = await supabaseDB
+                    .from('submissions')
+                    .insert([
+                        { 
+                            associate_name: associateName,
+                            artist_name: artistName, 
+                            favorite_song: favoriteSong 
+                        }
+                    ]);
+                if(error){
+                    console.error("Supabase insert error: ", error);
+                    displayMessage(entrySubmitMsg, "Error saving submission: " + error.message, false);
+                }
+                else{
+                    disableSubmitButton('game-submit-button', 'Entry Submitted! 🎉');
+                    displayMessage(entrySubmitMsg, "Your entry has been submitted successfully!", true);
+                }
+
+                document.getElementById('entry-name').value = '';
+                document.getElementById('artist-name').value = '';
+                document.getElementById('favorite-song').value = '';
+            }
+
+            async function getSubmissionsCount(){
+                const { count, error } = await supabaseDB
+                    .from('submissions')
+                    .select('*', { count: 'exact', head: true });
+
+                if(error){
+                    console.error("Error fetching submission count:", error);
+                    return 0;
+                }
+                return count;
+            }
+
+            async function loadResultsData(){
+                const resultsContainer = document.getElementById('results-container');
+                const totalSubmissions = await getSubmissionsCount();
+                const { data: guessData, error} = await supabaseDB
+                    .from('user_guesses')
+                    .select(`
+                        guesser_name,
+                        guessed_associate,
+                        submissions (
+                            artist_name,
+                            associate_name
+                        )
+                    `);
+
+                if(error){
+                    console.error('Error loading results data.');
+                    return;
+                }
+
+                const scores = {};
+                guessData.forEach(guess => {
+                    const guesser = guess.guesser_name;
+                    const userGuess = guess.guessed_associate;
+                    const realOwner = guess.submissions?.associate_name || "Unknown";
+                    const artistName = guess.submissions?.artist_name || "Unknown";
+
+                    if(!scores[guesser]){
+                        scores[guesser] = { correct: 0, details: [] };
+                    }
+
+                    const isCorrect = (userGuess.toLowerCase() === realOwner.toLowerCase());
+                    if(isCorrect){
+                        scores[guesser].correct++;
+                    }
+                    scores[guesser].details.push({
+                        guess: userGuess,
+                        artist: artistName,
+                        actual: realOwner,
+                        correct: isCorrect
+                    });
+                });
+
+                const sortedScores = Object.keys(scores).sort((a, b) => {
+                    return scores[b].correct - scores[a].correct;
+                });
+
+                resultsContainer.innerHTML = '';
+                sortedScores.forEach(guesser =>{
+                    const cardData = scores[guesser];
+
+                    let detailsHtml = '';
+                    cardData.details.forEach(guessDetails => {
+                        detailsHtml += `
+                            <div class="guess-row">
+                                <div>
+                                    <span class="guess-text">Artist:</span> <strong class="guess-artist"> ${guessDetails.artist}</strong>
+                                    <span style="color: #64748b; margin: 0 4px;">|</span>
+                                    <span class="guess-text">Submitted by: </span> <span class="guess-name"> ${guessDetails.actual}</span>
+                                </div>
+                                <div>
+                                    ${guessDetails.correct ? `<span class="submit-success">${guessDetails.guess}</span>` : `<span class="submit-error">${guessDetails.guess}</span>`}
+                                </div>
+                            </div>
+                        `;
+                    });
+                    const guesserCard = document.createElement('div');
+                    guesserCard.className = "results-card";
+                    guesserCard.innerHTML = `
+                    <details class="group">
+                        <summary class="results-summary">
+                        <div class="results-summary-left">
+                            <span class="results-name" style="color: #ffffff; font-weight: 700; font-size: 16px;">${guesser}</span>
+                        </div>
+                        <div class="results-summary-right">
+                            <span class="results-badge">
+                            Score: ${cardData.correct} / ${totalSubmissions}
+                            </span>
+                            <span class="results-toggle-text results-toggle-closed">View Guesses ↓</span>
+                            <span class="results-toggle-text results-toggle-open">Hide Guesses ↑</span>
+                        </div>
+                        </summary>
+                        <div class="results-content">
+                        ${detailsHtml}
+                        </div>
+                    </details>
+                    `;
+                    resultsContainer.appendChild(guesserCard);
+                });
+            }
+        </script>
+        <!--<script src="" async defer></script>-->
+    </body>
+</html>
