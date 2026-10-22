@@ -136,13 +136,28 @@
                         </div>
                         <div>
                             <label class="guess-label">Your Guess:</label>
-                            <select id="guess-${entry.id}" class="guess-select">
+                            <select id="guess-${entry.id}" data-item-id="${entry.id}" class="guess-select">
                                 ${optionsHTML}
                             </select>
                         </div>
                     `;
                     entriesGrid.appendChild(card);
                 });
+                /* cache */
+                document.querySelectorAll('.guess-select').forEach(select => {
+                    const itemId = select.dataset.itemId;
+
+                    const savedGuesses = JSON.parse(localStorage.getItem('cached_guesses') || '{}');
+                    if (savedGuesses[itemId]){
+                        select.value = savedGuesses[itemId];
+                    }
+
+                    select.addEventListener('change', (e) => {
+                        const currentGuesses = JSON.parse(localStorage.getItem('cached_guesses') || '{}');
+                        currentGuesses[itemId] = e.target.value;
+                        localStorage.setItem('cached_guesses', JSON.stringify(currentGuesses));
+                    });
+                });  
             }
 
             async function submitGuesses(){
@@ -182,6 +197,7 @@
                 else{
                     disableSubmitButton('game-submit-button', 'Guesses Submitted!');
                     displayMessage(submitMessage, "Your guesses have been submitted successfully!", true);
+                    localStorage.removeItem('cached_guesses');
                 }
             }
 
