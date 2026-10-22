@@ -50,6 +50,7 @@
                 <div class="game-header">
                     <h2 style="color: white">Match the Artists to the Associates</h2>
                 </div>
+                <p id="game-load-results-label" class="input-label" style="text-align: center;">Loading entries...</p>
                 <div id="entries-grid" class="entries-container">
 
                 </div>
@@ -115,9 +116,10 @@
                 /*TODO: CHANGE UNIQUE NAMES PART*/
                 const associateNames = [...new Set(data.map(item => item.associate_name))].sort();
                 const shuffledNames = [...associateNames].sort(() => Math.random() - 0.5);
-                entriesGrid = document.getElementById("entries-grid");
+                const entriesGrid = document.getElementById("entries-grid");
                 entriesGrid.innerHTML = "";
-
+                const gameLoadLabel = document.getElementById("game-load-results-label");
+                gameLoadLabel.classList.add("hidden");
                 allEntries.forEach((entry, index) => {
                     let optionsHTML = '<option value="" selected>-- Choose Associate --</option>';
                     /* build option card*/
@@ -243,6 +245,7 @@
 
             async function loadResultsData(){
                 const resultsContainer = document.getElementById('results-container');
+                resultsContainer.innerHTML = '<p class="input-label" style="text-align: center;">Loading results...</p>';
                 const totalSubmissions = await getSubmissionsCount();
                 const { data: guessData, error} = await supabaseDB
                     .from('user_guesses')
