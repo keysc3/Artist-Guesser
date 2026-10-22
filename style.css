@@ -16,6 +16,9 @@
     margin-right: auto;
     padding-top: 24px;
     max-width: 48rem;
+    padding-left: 16px;
+    padding-right: 16px;
+    box-sizing: border-box;
 }
 
 .nav-tabs{
