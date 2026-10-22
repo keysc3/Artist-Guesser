@@ -298,12 +298,15 @@
                     cardData.details.forEach(guessDetails => {
                         detailsHtml += `
                             <div class="guess-row">
-                                <div>
-                                    <span class="guess-text">Artist:</span> <strong class="guess-artist"> ${guessDetails.artist}</strong>
-                                    <span style="color: #64748b; margin: 0 4px;">|</span>
-                                    <span class="guess-text">Submitted by: </span> <span class="guess-name"> ${guessDetails.actual}</span>
+                                <div style="display: flex; flex-direction: column; gap: 2px;">
+                                    <div>
+                                        <span class="guess-text">Artist:</span> <strong class="guess-artist"> ${guessDetails.artist}</strong>
+                                    </div>
+                                    <div>
+                                        <span class="guess-text">Submitted by: </span> <span class="guess-name"> ${guessDetails.actual}</span>
+                                    </div>
                                 </div>
-                                <div>
+                                <div style="margin-top: 8px;"
                                     ${guessDetails.correct ? `<span class="submit-success">${guessDetails.guess}</span>` : `<span class="submit-error">${guessDetails.guess}</span>`}
                                 </div>
                             </div>
