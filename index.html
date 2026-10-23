@@ -115,7 +115,7 @@
                 /* add unique names to array and sort.*/
                 /*TODO: CHANGE UNIQUE NAMES PART*/
                 const associateNames = [...new Set(data.map(item => item.associate_name))].sort();
-                const shuffledNames = [...associateNames].sort(() => Math.random() - 0.5);
+                const shuffledNames = shuffle(associateNames);
                 const entriesGrid = document.getElementById("entries-grid");
                 entriesGrid.innerHTML = "";
                 const gameLoadLabel = document.getElementById("game-load-results-label");
@@ -199,6 +199,15 @@
                     displayMessage(submitMessage, "Your guesses have been submitted successfully!", true);
                     localStorage.removeItem('cached_guesses');
                 }
+            }
+
+            function shuffle(array) {
+                const copy = [...array];
+                for (let i = copy.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [copy[i], copy[j]] = [copy[j], copy[i]];
+                }
+                return copy;
             }
 
             function disableSubmitButton(buttonId, buttonText){
