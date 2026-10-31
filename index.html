@@ -18,10 +18,10 @@
             <!-- Header -->
             <header style="text-align: center;">
                 <h1 style="color: #FDB773; font-weight: bold;">Artist Guesser</h1>
-                <p style="font-size: 14px; line-height: 20px; margin-top: 4px; margin-bottom: 32px; color: #FFEDD5;">Submit your favorite artist or guess everyone else's.</p>
+                <p style="font-size: 14px; line-height: 20px; margin-top: 4px; margin-bottom: 32px; color: #FFEDD5;"></p>
             </header>
             <!-- Tabs -->
-            <div class="nav-tabs">
+            <div class="nav-tabs" id="nav-tabs">
                 <button id="submit-tab-button" onclick="switchTab('submit')" class="tab-button selected-tab-button">Submit Artist</button>
                 <button id="game-tab-button" onclick="switchTab('game')" class="tab-button">Match & Guess</button>
                 <button id="results-tab-button" onclick="switchTab('results')" class="tab-button">Results</button>
@@ -361,6 +361,62 @@
                     resultsContainer.appendChild(guesserCard);
                 });
             }
+            
+            document.addEventListener('DOMContentLoaded', () => {
+                const currentDate = new Date();
+                const resultsRevealDate = new Date('2026-11-30T00:00:00');
+                const submitDeadline = new Date('2026-11-16T00:00:00');
+
+                const resultsTab = document.getElementById('results-tab-button');
+                const submitTab = document.getElementById('submit-tab-button');
+                const gameTab = document.getElementById('game-tab-button');
+                const navTabs = document.getElementById('nav-tabs');
+
+                if (submitTab) {
+                    if (currentDate >= submitDeadline){
+                        submitTab.style.display = 'none';
+                    } else{
+                        submitTab.style.display = '';
+                    }
+                }
+
+                if (gameTab) {
+                    if (currentDate >= resultsRevealDate){
+                        gameTab.style.display = 'none';
+                    } else{
+                        gameTab.style.display = '';
+                        if(currentDate >= submitDeadline){
+                            switchTab('game'); 
+                            gameTab.style.display = 'none';
+                            navTabs.style.display = 'none';
+                        }
+                    }
+                }
+                
+                if (resultsTab) {
+                    if (currentDate < resultsRevealDate){
+                        resultsTab.style.display = 'none';
+                    } else{
+                        resultsTab.style.display = '';
+                        navTabs.style.display = 'none';
+                        switchTab('results'); 
+                    }
+                }
+
+                const submitGuessButton = document.getElementById('game-submit-button');
+                const statusText = document.getElementById('game-submit-message');
+
+                if (submitGuessButton) {
+                    if (currentDate < submitDeadline) {
+                        submitGuessButton.disabled = true;
+                        if(statusText){
+                            displayMessage(statusText, "Guessing begins November 16.", false);
+                        }
+                    } else {
+                        submitGuessButton.disabled = false;
+                    }
+                }
+            });
         </script>
         <!--<script src="" async defer></script>-->
     </body>
