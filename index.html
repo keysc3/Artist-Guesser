@@ -76,7 +76,6 @@
             const SUPABASE_KEY = 'sb_publishable_5A988ynKB1dg2kTlSs4XjQ_v84ODqbl';
             const supabaseDB = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-            var numEntries = 0;
             let allEntries = [];
 
             function switchTab(tab){
@@ -110,7 +109,7 @@
                 }
 
                 allEntries = data;
-                numEntries = allEntries.length;
+                shuffledEntries = shuffle(allEntries);
 
                 /* add unique names to array and sort.*/
                 /*TODO: CHANGE UNIQUE NAMES PART*/
@@ -120,7 +119,7 @@
                 entriesGrid.innerHTML = "";
                 const gameLoadLabel = document.getElementById("game-load-results-label");
                 gameLoadLabel.classList.add("hidden");
-                allEntries.forEach((entry, index) => {
+                shuffledEntries.forEach((entry, index) => {
                     let optionsHTML = '<option value="" selected>-- Choose Associate --</option>';
                     /* build option card*/
                     shuffledNames.forEach(name => {
